@@ -51,6 +51,15 @@ class Announcement:
                 self.kind = c['kind']
                 self.timestamp = c['timestamp']
 
+    def ReclassifyAnnouncements(self):
+        pass
+
+    def CheckSourceAnnouncements(self):
+        pass
+
+    def LoadPage(self):
+        pass
+
 
 # Connection with database
 def get_database():
