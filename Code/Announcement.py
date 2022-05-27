@@ -17,7 +17,7 @@ class Announcement:
         self.kind = kind
 
     # Taking an evaluation object and storing it to database
-    def StoreAnnouncements(self):
+    def StoreAnnouncements(self, website):
 
         # Connecting with database
         dbname = get_database()
@@ -27,7 +27,7 @@ class Announcement:
         announcement = {
             "author": self.author,
             "text": self.text,
-            "website": self.website,
+            "website": website,
             "kind": self.kind,
             "timestamp": datetime.now()
         }
