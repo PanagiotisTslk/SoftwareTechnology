@@ -36,7 +36,7 @@ class Announcement:
         print("Announcement stored successfully")
 
     # Retrieving all evaluations of a course given
-    def RetrieveEvaluations(self):
+    def RetrieveAnnouncements(self):
 
         # Connecting with database
         dbname = get_database()
@@ -73,3 +73,4 @@ def get_database():
 
     # Create the database
     return client["StudentUp"]
+
