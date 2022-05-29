@@ -5,13 +5,16 @@
 
 # Libraries
 from datetime import datetime
-
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+from pathlib import Path
 
 # Class for Note
 class Note:
 
     # Constructor
-    def __init__(self, filename, course, timestamp, description, author):
+    def __init__(self, notename, filename, course, timestamp, description, author):
+        self.notename = notename
         self.filename = filename
         self.course = course
         self.timestamp = timestamp
@@ -19,34 +22,89 @@ class Note:
         self.author = author
 
     def SearchNote(self):
-        pass
-
-    def DownloadNote(self):
-        pass
-
-    def CheckFileSize(self):
-        pass
-
-    def StoreNote(self, file):
-
-        # Uploading file in Drive
-
+        # List with note names to be returned
+        notes_list = []
 
         # Connecting with database
         dbname = get_database()
         # Choosing collection
         col = dbname["Notes"]
 
-        note = {
-            "filename": self.filename,
-            "course": self.course,
-            "description": self.description,
-            "author": self.author,
-            "timestamp": self.timestamp
-        }
+        for n in col.find():
+            # Check only notes from the selected course
+            if n['course'] == self.course:
+                notes_list.append(n['notename'])
 
-        col.insert_one(note)
-        print("Note stored successfully!")
+        return notes_list
+
+    def DownloadNote(self):
+        # Connectiong with Google Drive
+        drive = drive_connection()
+        
+
+    def CheckFileSize(self, upfile):
+        isRight = False
+
+        # Get Path of the file
+        file = Path(upfile)
+        # Get size of the file
+        fileSize = file.stat().st_size
+
+        # Check if file size is more than 100 MB = 104857600 Bytes
+        if fileSize > 104857600:
+          isRight = False
+        else:
+          isRight = True
+
+        return isRight
+
+    def StoreNote(self, file):
+        
+        sizeCheck = False
+        
+        # Uploading file in Drive
+        # Find Drive folder id for the specific course
+        # Connecting with database
+        dbname = get_database() 
+        # Choosing collection
+        col = dbname["Courses"]
+
+        for n in col.find():
+            # Retrieve drive folder id from Courses Collection
+            if n['name'] == self.course:
+                folder_id = n['driveID']
+
+        # Connectiong with Google Drive
+        drive = drive_connection()
+
+        # Check size of file
+        sizeCheck = self.CheckFileSize(self.filename)
+
+        if sizeCheck is True:
+            # Select Google Drive folder to upload file
+            gfile = drive.CreateFile({'parents': [{'id': folder_id}]})
+            # Read file and upload it to folder.
+            gfile.SetContentFile(self.filename)
+            gfile.Upload()
+            
+            # Connecting with database
+            dbname = get_database()
+            # Choosing collection
+            col = dbname["Notes"]
+
+            note = {
+                "natename": self.notename,
+                "filename": self.filename,
+                "course": self.course,
+                "description": self.description,
+                "author": self.author,
+                "timestamp": self.timestamp
+            }
+
+            col.insert_one(note)
+            print("Note stored successfully!")
+            
+        return sizeCheck
 
     def RetrieveNote(self):
 
@@ -63,6 +121,7 @@ class Note:
             if n['course'] == self.course:
 
                 note = {
+                    "natename": n['notename'],
                     "filename": n['filename'],
                     "course": n['course'],
                     "description": n['description'],
@@ -95,6 +154,25 @@ def get_database():
 
     # Create the database
     return client["StudentUp"]
+
+# Connection with Google Drive Storage
+def drive_connection():
+
+    # Class for oauth2client library in google-api-python-client
+    gauth = GoogleAuth("credentials.txt")
+
+    # Load credentials file
+    gauth.LoadCredentialsFile(self.credsFile)
+
+    # Check credentials
+    if gauth.credentials is None:
+        return False
+    else:
+        # Initialize the credentials
+        gauth.Authorize()
+        drive = GoogleDrive(gauth) 
+
+    return drive
 
 
 # # MENU
