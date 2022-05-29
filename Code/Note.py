@@ -158,12 +158,12 @@ class Note:
     def UpdateNote(self):
         pass
 
-    def DeleteNote(self, course, filename):
+    def DeleteNote(self, course, notename, filename):
         # Delete note file from Google Drive
         # Find Drive folder id for the specific course
         # Connecting with database
         dbname = get_database() 
-        # Choosing collection
+        # Choosing Courses collection
         col = dbname["Courses"]
 
         for n in col.find():
@@ -184,7 +184,12 @@ class Note:
                 file.Delete()
 
         # Delete Note from Data Base
-        # ...
+        # Choosing Notes collection
+        col = dbname["Notes"]
+        query = { "notename": notename }
+
+        # Delete note Document
+        col.delete_one(query)
 
         print("Note deleted successfully")
         return True
