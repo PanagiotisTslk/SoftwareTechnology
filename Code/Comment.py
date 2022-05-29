@@ -15,11 +15,31 @@ class Comment:
     self.note_name = note_name
     self.comment_writer = comment_writer
 
-  def SearchComment(self):
-    pass
-
+    
   def RetrieveComment(self):
-    pass
+    # List with comments to be returned
+    comment_list = []
+
+    # Connecting with database
+    dbname = get_database()
+    # Choosing Comments collection
+    col = dbname["Comments"]
+
+    for n in col.find():
+      # Check only comments from the selected course nd note
+      if n['course'] == self.subject and n['note_name'] == self.note_name:
+
+        comment = {
+          "text": n['text'],
+          "score": n['score'],
+          "comment_writer": n['comment_writer']
+        }
+        comment_list.append(comment)
+
+    if len(notes_list) == 0:
+      return False
+    else:
+      return notes_list
 
   # SAKIS
 
