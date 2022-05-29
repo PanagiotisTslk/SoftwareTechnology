@@ -37,9 +37,32 @@ class Note:
 
         return notes_list
 
-    def DownloadNote(self):
-        # Connectiong with Google Drive
+    def DownloadNote(self, course, filename):
+        # Find Drive folder id for the specific course
+        # Connecting with database
+        dbname = get_database() 
+        # Choosing collection
+        col = dbname["Courses"]
+
+        for n in col.find():
+            # Retrieve drive folder id from Courses Collection
+            if n['name'] == course:
+                folder_id = n['driveID']
+
+        # Connection with Google Drive
         drive = drive_connection()
+
+        # Get list of all files inside folder
+        file_list = drive.ListFile({'q': "'{}' in parents and trashed=false".format(folder_id)}).GetList()
+
+        # Find correct file
+        for file in file_list:
+            if file["title"] == filename:
+                # Download file
+                file.GetContentFile(file['title'])
+
+        print("Note downloaded successfully")
+        return True
         
 
     def CheckFileSize(self, upfile):
@@ -135,8 +158,36 @@ class Note:
     def UpdateNote(self):
         pass
 
-    def DeleteNote(self):
-        pass
+    def DeleteNote(self, course, filename):
+        # Delete note file from Google Drive
+        # Find Drive folder id for the specific course
+        # Connecting with database
+        dbname = get_database() 
+        # Choosing collection
+        col = dbname["Courses"]
+
+        for n in col.find():
+            # Retrieve drive folder id from Courses Collection
+            if n['name'] == course:
+                folder_id = n['driveID']
+
+        # Connection with Google Drive
+        drive = drive_connection()
+
+        # Get list of all files inside folder
+        file_list = drive.ListFile({'q': "'{}' in parents and trashed=false".format(folder_id)}).GetList()
+
+        # Find correct file
+        for file in file_list:
+            if file["title"] == filename:
+                # Delete file permanently
+                file.Delete()
+
+        # Delete Note from Data Base
+        # ...
+
+        print("Note deleted successfully")
+        return True
 
     # SAKIS
     def CheckDownloadedNotes(self):
