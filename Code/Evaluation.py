@@ -1,4 +1,7 @@
-''' Script for Class Evluation '''
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
+''' Script for Class Evaluation '''
 
 # Libraries
 from datetime import datetime
@@ -7,21 +10,21 @@ from datetime import datetime
 class Evaluation:
 
     # Constructor
-    def __init__(self, evaluator, rate, comments, timestamp):
+    def __init__(self, evaluator, course, rate, comments, timestamp):
         self.evaluator = evaluator
+        self.course = course
         self.rate = rate
+        self.comments = comments
         self.timestamp = timestamp
 
     # Making an evaluation (Calls CheckGrade() and StoreEvalution())
-    def MakeEvaluation(self, evaluator, rate, comments):
+    def MakeEvaluation(self, rate, comments):
 
         isMade = False
 
         check = self.CheckGrade(rate)
-        if check == True:
 
-            self.rate = rate
-            self.evalutor = evaluator
+        if check == True:
 
             if comments is not None:
                 self.comments = comments
@@ -29,7 +32,7 @@ class Evaluation:
             else:
                 self.comments = ''
 
-            self.timestamp = datetime.now()
+            self.timestamp = datetime.now().strftime('%d-%m-%Y')
             print('Here calls StoreEvalution()!\n')
             isMade = True
 
@@ -39,6 +42,8 @@ class Evaluation:
 
         return isMade
 
+
+    # Cheking if grades has valid value
     def CheckGrade(self, grade):
 
         isValid = True
@@ -53,7 +58,7 @@ class Evaluation:
         return isValid
 
     # Taking an evaluation object and storing it to database
-    def StoreEvaluation(self, course):
+    def StoreEvaluation(self):
 
         # Connecting with database
         dbname = get_database()
@@ -61,18 +66,21 @@ class Evaluation:
         col = dbname["Evaluations"]
 
         evaluation = {
-            "course": course,
+            "course": self.course,
             "evaluator": self.evaluator,
             "rate": self.rate,
             "comments": self.comments,
-            "timestamp": datetime.now()
+            "timestamp": datetime.now().strftime('%d-%m-%Y')
         }
 
         col.insert_one(evaluation)
-        print("Evaluation created successfully")
+        print("Evaluation created successfully!")
 
     # Retrieving all evaluations of a course given
     def RetrieveEvaluations(self):
+
+        # List with notes to be returned
+        evaluations_list = []
 
         # Connecting with database
         dbname = get_database()
@@ -80,19 +88,26 @@ class Evaluation:
         col = dbname["Evaluations"]
 
         for c in col.find():
+
             if c['course'] == self.course:
-                print(c)
-                self.evaluator = c['evaluator']
-                self.rate = c['rate']
-                self.comments = c['comments']
-                self.timestamp = c['timestamp']
+
+                evaluation = {
+                    "course": c['course'],
+                    "evaluator": c['evaluator'],
+                    "rate": c['rate'],
+                    "comments": c['comments'],
+                    "timestamp": c['timestamp']
+                }
+                evaluations_list.append(evaluation)
+
+        return evaluations_list
 
 
 # Connection with database
 def get_database():
 
     # Provide the mongodb atlas url to connect python to mongodb using pymongo
-    CONNECTION_STRING = "mongodb+srv://****:************@cluster0.jnvsh.mongodb.net/StudentUp"
+    CONNECTION_STRING = "mongodb+srv://tslk:Tslkgtx950pt@cluster0.jnvsh.mongodb.net/StudentUp"
 
     # Create a connection using MongoClient
     from pymongo import MongoClient
